@@ -1,85 +1,140 @@
-2BCloud Task
-Infrastructure Overview
+2BCloud Assignment
+This repository contains a complete CI/CD pipeline deploying a containerized web application to AWS EKS with Horizontal Pod Autoscaling.
+Project Components
+1. Infrastructure (AWS)
 
-EKS cluster with t3.small node
-ECR repository for container images
-FastAPI application with health check
-GitHub Actions CI/CD pipeline
+EKS Cluster with t3.small node type
+ECR Repository: 2bcloud-repo-dev
+AWS Load Balancer for external access
 
-Project Structure
-Copy.
-├── .github/workflows/    # CI/CD pipeline
-│   └── ci-cd.yml
-├── app/                  # Application code
-│   ├── app.py
-│   └── requirements.txt
-├── kubernetes/          # Kubernetes manifests
-│   └── deployment.yaml
-├── terraform/          # Infrastructure as Code
-│   ├── main.tf
-│   ├── variables.tf
-│   └── outputs.tf
-└── Dockerfile          # Container build file
+2. Web Application
+A Python FastAPI application providing:
+
+"/" endpoint returning Hello World message
+"/healthz" endpoint for health checks
+
+3. Docker Container
+
+Base image: python:3.12-slim
+Application runs on port 8000
+Container image stored in AWS ECR
+
+4. Kubernetes Deployment
+
+Single replica deployment with HPA support
+LoadBalancer service type
+Health check configuration
+Resource management
+Horizontal Pod Autoscaler (1-5 pods, 50% CPU target)
+
+5. CI/CD Pipeline
+GitHub Actions workflow automating:
+
+Docker image build
+ECR push
+EKS deployment
+
 Setup Instructions
-1. Infrastructure Provisioning
-bashCopycd terraform
+Prerequisites
+
+AWS CLI configured
+kubectl installed
+Terraform installed
+Docker installed
+metrics-server installed in EKS cluster
+
+Infrastructure Provisioning
+cd terraform
 terraform init
 terraform plan
 terraform apply
-2. Application Deployment
-The application is a simple FastAPI service with:
+Application Deployment
+# Deploy application
+kubectl apply -f kubernetes/deployment.yaml
 
-Root endpoint ("/") returning "Hello World"
-Health check endpoint ("/healthz")
+# Deploy HPA
+kubectl apply -f kubernetes/hpa.yaml
 
-3. Container Registry
-ECR repository: 2bcloud-repo-dev
-bashCopyaws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 114885604022.dkr.ecr.eu-central-1.amazonaws.com
-4. CI/CD Pipeline
-The GitHub Actions pipeline automates:
+# Verify HPA
+kubectl get hpa
+Horizontal Pod Autoscaler (HPA)
+The application includes HPA configuration for automatic scaling:
 
-Building Docker image
-Pushing to ECR
-Deploying to EKS
+Configuration:
 
-Required GitHub Secrets:
 
-AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY
+Minimum pods: 1
+Maximum pods: 5
+Target CPU utilization: 50%
 
-5. Kubernetes Deployment
-bashCopykubectl apply -f kubernetes/deployment.yaml
-6. Verification Steps
 
-Check pod status:
+Testing HPA:
 
-bashCopykubectl get pods
+# Install Apache Bench
+sudo apt-get install apache2-utils
 
-Check service and LoadBalancer:
+# Get service URL
+export SERVICE_URL=$(kubectl get svc hello-app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 
-bashCopykubectl get svc hello-app
+# Run load test
+ab -n 10000 -c 100 http://$SERVICE_URL/
+
+# Monitor scaling
+kubectl get hpa -w
+kubectl get pods -w
+
+Expected Behavior:
+
+
+High load triggers automatic scaling
+System scales up to handle increased load
+After load decreases, system automatically scales down
+
+Verification
+
+Check deployments and pods:
+
+kubectl get deployments
+kubectl get pods
+
+Check HPA status:
+
+kubectl get hpa
 
 Access application:
 
+# Get LoadBalancer URL
+kubectl get svc hello-app
 
-Hello World: http://<LOAD_BALANCER_URL>
-Health Check: http://<LOAD_BALANCER_URL>/healthz
-
+# Test endpoints
+curl http://<LOAD_BALANCER_URL>/
+curl http://<LOAD_BALANCER_URL>/healthz
+Repository Structure
+Copy.
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml      # CI/CD pipeline configuration
+├── app/
+│   ├── app.py            # FastAPI application
+│   └── requirements.txt   # Python dependencies
+├── kubernetes/
+│   ├── deployment.yaml   # K8s deployment and service
+│   └── hpa.yaml         # Horizontal Pod Autoscaler config
+├── terraform/            # Infrastructure as code
+├── Dockerfile           # Container configuration
+└── README.md           # This file
 Troubleshooting
 
-Check node status: kubectl get nodes
-Check pod logs: kubectl logs <pod-name>
-Check service status: kubectl describe svc hello-app
+Pod status: kubectl get pods
+HPA status: kubectl get hpa
+Detailed HPA info: kubectl describe hpa hello-app-hpa
+Pod logs: kubectl logs <pod-name>
+Service status: kubectl get svc
+Node status: kubectl get nodes
 
-Security Notes
-
-Cluster access is managed through AWS IAM
-Application is exposed via AWS LoadBalancer
-Container registry requires AWS authentication
-
-Maintenance
-
-Monitor node resources
-Update dependencies regularly
-Check CloudWatch logs for issues
-Rotate AWS credentials as needed
+Clean Up
+To remove all resources:
+kubectl delete -f kubernetes/hpa.yaml
+kubectl delete -f kubernetes/deployment.yaml
+cd terraform
+terraform destroy
