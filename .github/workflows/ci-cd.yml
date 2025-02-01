@@ -9,7 +9,7 @@ on:
 env:
   AWS_REGION: eu-central-1
   ECR_REPOSITORY: 2bcloud-repo-dev
-  EKS_CLUSTER_NAME: your-cluster-name
+  EKS_CLUSTER_NAME: 2bcloud-eks-dev
 
 jobs:
   build-and-deploy:
