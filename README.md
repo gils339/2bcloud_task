@@ -1,140 +1,135 @@
-2BCloud Assignment
-This repository contains a complete CI/CD pipeline deploying a containerized web application to AWS EKS with Horizontal Pod Autoscaling.
-Project Components
-1. Infrastructure (AWS)
+# 2BCloud Assignment
 
-EKS Cluster with t3.small node type
-ECR Repository: 2bcloud-repo-dev
-AWS Load Balancer for external access
+This repository implements a **CI/CD pipeline** to deploy a containerized web application to **AWS EKS**, using **Terraform, Docker, Kubernetes, and GitHub Actions**.
 
-2. Web Application
-A Python FastAPI application providing:
+---
 
-"/" endpoint returning Hello World message
-"/healthz" endpoint for health checks
+## ** Project Overview**
+### **Infrastructure (AWS)**
+- **EKS Cluster** (`t3.small` node type)
+- **ECR Repository**: `2bcloud-repo-dev`
+- **AWS Load Balancer** for external access
 
-3. Docker Container
+### **Web Application**
+A Python **FastAPI** app with:
+- `"/"` → **Returns "Hello World"**
+- `"/healthz"` → **Health check endpoint**
 
-Base image: python:3.12-slim
-Application runs on port 8000
-Container image stored in AWS ECR
+### **Containerization**
+- **Base image**: `python:3.12-slim`
+- **Runs on port 8000**
+- **Stored in AWS ECR**
 
-4. Kubernetes Deployment
+### **Kubernetes Deployment**
+- **Deployment with HPA support**
+- **LoadBalancer service type**
+- **Health check & resource management**
+- **HPA (1-5 pods, 50% CPU target)**
 
-Single replica deployment with HPA support
-LoadBalancer service type
-Health check configuration
-Resource management
-Horizontal Pod Autoscaler (1-5 pods, 50% CPU target)
+### **CI/CD Pipeline**
+A **GitHub Actions** workflow automating:
+- **Docker image build**
+- **Push to AWS ECR**
+- **Deployment to EKS**
 
-5. CI/CD Pipeline
-GitHub Actions workflow automating:
+---
 
-Docker image build
-ECR push
-EKS deployment
+## ** Setup**
+### **Prerequisites**
+Ensure you have the following installed and configured:
+- [AWS CLI](https://aws.amazon.com/cli/)
+- [`kubectl`](https://kubernetes.io/docs/tasks/tools/)
+- [`Terraform`](https://developer.hashicorp.com/terraform/downloads)
+- [`Docker`](https://www.docker.com/get-started)
+- [`metrics-server`](https://github.com/kubernetes-sigs/metrics-server) (for HPA)
 
-Setup Instructions
-Prerequisites
+---
 
-AWS CLI configured
-kubectl installed
-Terraform installed
-Docker installed
-metrics-server installed in EKS cluster
+## ** Provision Infrastructure**
 
-Infrastructure Provisioning
 cd terraform
 terraform init
-terraform plan
 terraform apply
-Application Deployment
-# Deploy application
-kubectl apply -f kubernetes/deployment.yaml
+
+
+ Deploy Application:
+ # Deploy app
+- kubectl apply -f kubernetes/deployment.yaml
 
 # Deploy HPA
-kubectl apply -f kubernetes/hpa.yaml
+- kubectl apply -f kubernetes/hpa.yaml
 
 # Verify HPA
-kubectl get hpa
-Horizontal Pod Autoscaler (HPA)
-The application includes HPA configuration for automatic scaling:
+- kubectl get hpa
 
-Configuration:
-
-
-Minimum pods: 1
-Maximum pods: 5
-Target CPU utilization: 50%
-
-
-Testing HPA:
+Horizontal Pod Autoscaler (HPA):
+- Scaling Config:
+- Min pods: 1
+- Max pods: 5
+- Target CPU utilization: 50%
 
 # Install Apache Bench
-sudo apt-get install apache2-utils
+- sudo apt-get install apache2-utils
 
 # Get service URL
-export SERVICE_URL=$(kubectl get svc hello-app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+- export SERVICE_URL=$(kubectl get svc hello-app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 
-# Run load test
-ab -n 10000 -c 100 http://$SERVICE_URL/
+# Simulate traffic
+- ab -n 10000 -c 100 http://$SERVICE_URL/
 
 # Monitor scaling
-kubectl get hpa -w
-kubectl get pods -w
-
-Expected Behavior:
-
-
-High load triggers automatic scaling
-System scales up to handle increased load
-After load decreases, system automatically scales down
+- kubectl get hpa -w
+- kubectl get pods -w
 
 Verification
+# Check deployments & pods
+- kubectl get deployments
+- kubectl get pods
 
-Check deployments and pods:
-
-kubectl get deployments
-kubectl get pods
-
-Check HPA status:
-
-kubectl get hpa
-
-Access application:
+# Check HPA status
+- kubectl get hpa
 
 # Get LoadBalancer URL
-kubectl get svc hello-app
+- kubectl get svc hello-app
 
 # Test endpoints
-curl http://<LOAD_BALANCER_URL>/
-curl http://<LOAD_BALANCER_URL>/healthz
-Repository Structure
-Copy.
-├── .github/
-│   └── workflows/
-│       └── ci-cd.yml      # CI/CD pipeline configuration
+- curl http://<LOAD_BALANCER_URL>/
+- curl http://<LOAD_BALANCER_URL>/healthz
+
+📁 Repository Structure
+.
+├── .github/workflows/ci-cd.yml  # CI/CD pipeline
 ├── app/
-│   ├── app.py            # FastAPI application
-│   └── requirements.txt   # Python dependencies
+│   ├── app.py                  # FastAPI app
+│   └── requirements.txt         # Dependencies
 ├── kubernetes/
-│   ├── deployment.yaml   # K8s deployment and service
-│   └── hpa.yaml         # Horizontal Pod Autoscaler config
-├── terraform/            # Infrastructure as code
-├── Dockerfile           # Container configuration
-└── README.md           # This file
-Troubleshooting
+│   ├── deployment.yaml         # Deployment & service
+│   └── hpa.yaml                # HPA config
+├── terraform/                  # Infrastructure as code
+├── Dockerfile                  # Container configuration
+└── README.md                   # Documentation
 
-Pod status: kubectl get pods
-HPA status: kubectl get hpa
-Detailed HPA info: kubectl describe hpa hello-app-hpa
-Pod logs: kubectl logs <pod-name>
-Service status: kubectl get svc
-Node status: kubectl get nodes
+Troubleshooting:
+# Check pod status
+kubectl get pods
 
-Clean Up
-To remove all resources:
-kubectl delete -f kubernetes/hpa.yaml
-kubectl delete -f kubernetes/deployment.yaml
-cd terraform
-terraform destroy
+# Check HPA status
+kubectl get hpa
+
+# Get detailed HPA information
+kubectl describe hpa hello-app-hpa
+
+# Check pod logs
+kubectl logs <pod-name>
+
+# Check service status
+kubectl get svc
+
+# Check node status
+kubectl get nodes
+
+Clean Up:
+- kubectl delete -f kubernetes/hpa.yaml
+- kubectl delete -f kubernetes/deployment.yaml
+- cd terraform
+- terraform destroy
