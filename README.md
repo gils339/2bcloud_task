@@ -47,9 +47,9 @@ Ensure you have the following installed and configured:
 
 ## ** Provision Infrastructure**
 
-cd terraform
-terraform init
-terraform apply
+- cd terraform
+- terraform init
+- terraform apply
 
 
  Deploy Application:
