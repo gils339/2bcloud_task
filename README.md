@@ -61,6 +61,9 @@ Ensure you have the following installed and configured:
 - kubectl apply -f kubernetes/deployment.yaml
 
 # Deploy HPA
+- kubectl apply -f kubernetes/metrics-server.yaml
+# Wait for it to be running
+- kubectl get pods -n kube-system | grep metrics-server
 - kubectl apply -f kubernetes/hpa.yaml
 
 # Verify HPA
@@ -102,16 +105,16 @@ Verification
 
 📁 Repository Structure
 .
-- ├── .github/workflows/ci-cd.yml  # CI/CD pipeline
-- ├── app/
-- │   ├── app.py                  # FastAPI app
-- │   └── requirements.txt         # Dependencies
-- ├── kubernetes/
-- │   ├── deployment.yaml         # Deployment & service
-- │   └── hpa.yaml                # HPA config
-- ├── terraform/                  # Infrastructure as code
-- ├── Dockerfile                  # Container configuration
-- └── README.md                   # Documentation
+├── .github/workflows/ci-cd.yml  # CI/CD pipeline
+├── app/
+│   ├── app.py                  # FastAPI app
+│   └── requirements.txt         # Dependencies
+├── kubernetes/
+│   ├── deployment.yaml         # Deployment & service
+│   └── hpa.yaml                # HPA config
+├── terraform/                  # Infrastructure as code
+├── Dockerfile                  # Container configuration
+└── README.md                   # Documentation
 
 Troubleshooting:
 # Check pod status
