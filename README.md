@@ -47,12 +47,16 @@ Ensure you have the following installed and configured:
 
 ## ** Provision Infrastructure**
 
-cd terraform
-terraform init
-terraform apply
+- cd terraform
+- terraform init
+- terraform apply
 
 
  Deploy Application:
+
+ # Update kubeconfig
+ - aws eks update-kubeconfig --name 2bcloud-eks-dev --region eu-central-1 
+
  # Deploy app
 - kubectl apply -f kubernetes/deployment.yaml
 
