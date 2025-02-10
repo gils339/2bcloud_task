@@ -41,7 +41,6 @@ Ensure you have the following installed and configured:
 - [`kubectl`](https://kubernetes.io/docs/tasks/tools/)
 - [`Terraform`](https://developer.hashicorp.com/terraform/downloads)
 - [`Docker`](https://www.docker.com/get-started)
-- [`metrics-server`](https://github.com/kubernetes-sigs/metrics-server) (for HPA)
 
 ---
 
